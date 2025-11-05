@@ -45,3 +45,13 @@
    - Taille CSV
    - Taille Parquet
    - Ratio de compression
+
+### Exercice 4 Pipeline ETL Simple
+
+**Objectif**: Créer un pipeline complet de bout en bout
+
+1. Extract: Télécharger des CSV depuis GCS
+2. Transform: Nettoyer (supprimer lignes avec valeurs manquantes)
+3. Load: Uploader les CSV nettoyés dans GCS
+
+**Fichiers à utiliser**: data/ventes_invalides.csv
