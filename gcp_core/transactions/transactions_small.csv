@@ -1,0 +1,11 @@
+transaction_id,date,user_id,montant,statut,categorie
+TXN001,2024-01-15,USER001,150.50,completed,alimentation
+TXN002,2024-01-15,USER002,89.99,completed,vetements
+TXN003,2024-01-15,USER003,1200.00,pending,electronique
+TXN004,2024-01-16,USER001,45.00,completed,transport
+TXN005,2024-01-16,USER004,320.75,completed,loisirs
+TXN006,2024-01-16,USER002,67.30,failed,alimentation
+TXN007,2024-01-17,USER005,890.00,completed,electronique
+TXN008,2024-01-17,USER003,23.50,completed,alimentation
+TXN009,2024-01-17,USER001,156.80,completed,vetements
+TXN010,2024-01-18,USER004,45.00,completed,transport

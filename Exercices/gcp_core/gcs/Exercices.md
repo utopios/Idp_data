@@ -20,3 +20,28 @@
    - `ventes_2024_01.csv` dans `raw/ventes/2024/01/`
    - `ventes_2024_02.csv` dans `raw/ventes/2024/02/`
    - Les fichiers logs dans `raw/logs/2024/01/`
+
+### Exercice 2: Script de Backup Local vers GCS
+
+**Objectif**: Automatiser la sauvegarde de fichiers locaux
+
+1. Créer un script Python `backup_to_gcs.py`
+2. Le script doit:
+   - Parcourir un dossier local (ex: ./data)
+   - Compresser chaque fichier en .gz
+   - Uploader vers GCS dans un dossier backup/YYYY-MM-DD/
+   - Afficher une barre de progression
+   - Logger les opérations dans backup.log
+
+### Exercice 3: Conversion CSV vers Parquet
+
+**Objectif**: Optimiser le stockage avec Parquet
+
+1. Télécharger `transactions_1000.csv` depuis GCS
+2. Lire avec Pandas
+3. Convertir en format Parquet
+4. Uploader le fichier Parquet dans GCS
+5. Comparer les tailles:
+   - Taille CSV
+   - Taille Parquet
+   - Ratio de compression
