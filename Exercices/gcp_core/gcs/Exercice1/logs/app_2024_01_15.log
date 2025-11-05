@@ -1,0 +1,10 @@
+2024-01-15 10:00:01 INFO User user123 logged in
+2024-01-15 10:00:15 INFO User user123 viewed page /products
+2024-01-15 10:01:23 INFO User user456 logged in
+2024-01-15 10:02:45 WARNING Failed login attempt for user789
+2024-01-15 10:03:12 INFO User user456 added item to cart
+2024-01-15 10:05:34 ERROR Database connection timeout
+2024-01-15 10:06:01 INFO User user123 completed purchase
+2024-01-15 10:07:22 INFO User user456 viewed page /checkout
+2024-01-15 10:08:45 ERROR Payment gateway error
+2024-01-15 10:09:12 INFO User user789 logged in

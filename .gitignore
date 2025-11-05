@@ -54,7 +54,7 @@ cover/
 *.pot
 
 # Django stuff:
-*.log
+# *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -145,17 +145,11 @@ cython_debug/
 *~
 .DS_Store
 
-# Data files (à ajuster selon tes besoins)
-*.csv
-*.dat
-*.db
-*.sqlite
-*.pkl
-*.pickle
+
 
 # Logs
-*.log
-logs/
+# *.log
+# logs/
 
 # Credentials et secrets
 *.key

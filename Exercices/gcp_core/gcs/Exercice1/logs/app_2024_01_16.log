@@ -1,0 +1,10 @@
+2024-01-16 09:00:05 INFO User user111 logged in
+2024-01-16 09:01:23 INFO User user111 viewed page /products
+2024-01-16 09:02:45 INFO User user222 logged in
+2024-01-16 09:03:12 WARNING Slow query detected
+2024-01-16 09:04:56 INFO User user333 logged in
+2024-01-16 09:05:34 INFO User user222 added item to cart
+2024-01-16 09:06:12 ERROR Service unavailable
+2024-01-16 09:07:45 INFO User user111 completed purchase
+2024-01-16 09:08:23 INFO User user333 viewed page /account
+2024-01-16 09:09:56 INFO User user222 logged out
