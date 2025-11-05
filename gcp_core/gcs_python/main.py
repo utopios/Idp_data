@@ -12,3 +12,15 @@ for bucket in buckets:
 # Access a specific bucket
 bucket_name = "ihab_bucket_utopios"
 bucket = client.bucket(bucket_name)
+blobs = bucket.list_blobs()
+for blob in blobs:
+    print(blob.name)
+
+# Upload a file to the bucket
+blob = bucket.blob("new_data.csv")
+blob.upload_from_filename("../data/to_upload.csv")
+
+# Download a file from the bucket
+
+blob = bucket.blob("data.csv")
+blob.download_to_filename("../data/downloaded_data.csv")
