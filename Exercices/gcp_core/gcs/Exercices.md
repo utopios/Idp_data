@@ -30,7 +30,7 @@
    - Parcourir un dossier local (ex: ./data)
    - Compresser chaque fichier en .gz
    - Uploader vers GCS dans un dossier backup/YYYY-MM-DD/
-   - Afficher une barre de progression
+   - Afficher une barre de progression (tqdm)
    - Logger les opérations dans backup.log
 
 ### Exercice 3: Conversion CSV vers Parquet
