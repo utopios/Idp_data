@@ -6,7 +6,8 @@
 gcloud compute instances create data-processing-vm-ihab \
     --zone=europe-west1-b \
     --machine-type=e2-standard-2 \
-    --tags=data-processing
+    --tags=data-processing \
+    --scopes=cloud-platform
 
 gcloud compute instances list
 
@@ -27,7 +28,7 @@ source ~/venv/bin/activate
 
 pip install pandas google-cloud-storage
 
-scp process_transactions.py  -i ~/.ssh/google_compute_engine nom-utilisateur@adresse_ip/process_transactions.py
+compute instance scp process_transactions.py  bcp@data-processing-vm-ihab/process_transactions.py
 
 chmod +x process_transactions.py
 

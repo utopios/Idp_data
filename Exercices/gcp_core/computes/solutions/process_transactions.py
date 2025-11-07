@@ -10,7 +10,7 @@ from datetime import datetime
 
 # Configuration
 BUCKET_NAME = 'ihab_bucket_utopios'  
-INPUT_FILE = 'data/transactions_500.csv'
+INPUT_FILE = 'transactions_500.csv'
 OUTPUT_FILE = 'processed/summary.csv'
 
 def download_from_gcs(bucket_name, blob_name, local_filename):
@@ -22,6 +22,7 @@ def download_from_gcs(bucket_name, blob_name, local_filename):
     blob = bucket.blob(blob_name)
 
     blob.download_to_filename(local_filename)
+    blob.reload()
     print(f"[{datetime.now().strftime('%H:%M:%S')}] ✓ Fichier téléchargé: {local_filename}")
 
     return blob.size
