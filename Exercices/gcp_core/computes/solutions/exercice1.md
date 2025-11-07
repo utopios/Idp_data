@@ -27,4 +27,8 @@ source ~/venv/bin/activate
 
 pip install pandas google-cloud-storage
 
+scp process_transactions.py  -i ~/.ssh/google_compute_engine nom-utilisateur@adresse_ip/process_transactions.py
+
+chmod +x process_transactions.py
+
 ```
