@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 
 # Configuration
-BUCKET_NAME = '' 
+BUCKET_NAME = 'ihab_bucket_utopios' 
 VENTES_FILES = [
     'data/ventes_2024_01.csv',
     'data/ventes_2024_02.csv'
