@@ -398,3 +398,27 @@ gsutil -m rm -r gs://${PROJECT_ID}-json-output
 gcloud functions list --region $REGION
 gsutil ls
 ```
+
+## Ajout des droits
+
+```bash
+export PROJECT_ID="projet-kube-c"
+export BUCKET_NAME="ihab_bucket_utopios"
+export REGION="europe-west1"
+
+export PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+
+export EVENTARC_SA="service-${PROJECT_NUMBER}@gcp-sa-eventarc.iam.gserviceaccount.com"
+
+gsutil iam ch serviceAccount:${EVENTARC_SA}:objectViewer gs://${BUCKET_NAME}
+gsutil iam ch serviceAccount:${EVENTARC_SA}:legacyBucketReader gs://${BUCKET_NAME}
+
+
+export GCS_SA="service-${PROJECT_NUMBER}@gs-project-accounts.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${GCS_SA}" \
+  --role="roles/pubsub.publisher"
+
+gsutil iam get gs://${BUCKET_NAME} | grep eventarc
+```
