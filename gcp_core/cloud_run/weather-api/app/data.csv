@@ -1,0 +1,3 @@
+date,temperature,humidity,pressure,wind_speed,precipitation,station_id
+2024-01-01,15.2,65,1013.2,12.5,0.0,STATION_01
+2024-01-02,16.8,70,1012.8,15.2,2.3,STATION_01

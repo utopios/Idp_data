@@ -1,6 +1,7 @@
 from google.cloud import storage
 from datetime import datetime
 import os
+from io import StringIO
 
 class WeatherStorageHandler:
     def __init__(self, bucket_name):
@@ -71,7 +72,7 @@ class WeatherStorageHandler:
         
         for file_info in files:
             content = self.download_file(file_info['name'])
-            df = pd.read_csv(pd.StringIO(content))
+            df = pd.read_csv(StringIO(content))
             dfs.append(df)
         
         if dfs:
