@@ -1,6 +1,6 @@
 import pandas as pd
 from werkzeug.datastructures import FileStorage
-
+from io import StringIO
 class DataValidator:
     REQUIRED_COLUMNS = ['date', 'temperature', 'humidity', 'pressure', 
                         'wind_speed', 'precipitation', 'station_id']
@@ -15,7 +15,7 @@ class DataValidator:
             content = file.read()
             file.seek(0)  # Reset pour pouvoir relire
             
-            df = pd.read_csv(pd.StringIO(content.decode('utf-8')))
+            df = pd.read_csv(StringIO(content.decode('utf-8')))
             
             # Vérifier les colonnes requises
             missing_cols = set(DataValidator.REQUIRED_COLUMNS) - set(df.columns)
