@@ -7,7 +7,7 @@ import os
 def predict_digit(model_path, image_path):
     # Charger le modèle
     model = keras.models.load_model(model_path)
-    
+    model.summary()
     # Charger et prétraiter l'image
     img = keras.preprocessing.image.load_img(image_path, color_mode='grayscale', target_size=(28, 28))
     img_array = keras.preprocessing.image.img_to_array(img)
