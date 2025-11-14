@@ -31,9 +31,9 @@ print(f"X_test shape: {X_test.shape}")
 model = tf.keras.Sequential([
     layers.Input(shape=(28*28,)),
     layers.Dense(128, activation='relu'),
-    layers.Dropout(0.2),
+    layers.Dropout(0.1),
     layers.Dense(64, activation='relu'),
-    layers.Dropout(0.2),
+    layers.Dropout(0.1),
     layers.Dense(10, activation='softmax')
     ], name="mnist_model")
 
@@ -46,9 +46,13 @@ model.compile(optimizer='adam',
 print("="*50)
 print("Entraînement du modèle")
 print("="*50)
-history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2, verbose=1)
+history = model.fit(X_train, y_train, epochs=5, batch_size=128, validation_split=0.1, verbose=1)
 print("="*50)
 print("Évaluation du modèle")
 print("="*50)
 test_loss, test_acc = model.evaluate(X_test, y_test, verbose=2)
 print(f'\nTest accuracy: {test_acc}')
+
+# Sauvegarde du modèle
+model.save('mnist_model.keras')
+print("Modèle sauvegardé sous le nom 'mnist_model.keras'")
