@@ -183,3 +183,37 @@ Identifier des **groupes de magasins similaires** pour adapter les stratégies c
   - Catégorie principale vendue
   - Prix moyen des produits
   - Diversité du catalogue
+
+## EXERCICE 5 : BOOSTED TREE - Améliorer la Prédiction 
+
+### Objectif
+Utiliser un modèle plus performant pour **prédire les ventes** et **les grosses ventes**.
+
+
+**5.1** Régression avec BOOSTED_TREE
+- Créer un modèle BOOSTED_TREE_REGRESSOR
+- Prédire `sale_dollars`
+- Paramètres de base (max_iterations=50, max_tree_depth=6)
+- Comparer avec LINEAR_REG
+
+**5.2** Classification avec BOOSTED_TREE
+- Créer un modèle BOOSTED_TREE_CLASSIFIER
+- Prédire `is_big_sale`
+- Comparer avec LOGISTIC_REG
+
+**5.3** Optimisation
+- Tester différents hyperparamètres :
+  - `max_iterations` : 30, 50, 100
+  - `max_tree_depth` : 4, 6, 8
+  - `learn_rate` : 0.05, 0.1, 0.3
+- Identifier la meilleure configuration
+
+**5.4** Feature Importance
+- Analyser l'importance des variables
+- Comparer avec les coefficients de LINEAR_REG
+- Y a-t-il des surprises ?
+
+**5.5** Analyse d'erreurs
+- Sur quels cas BOOSTED_TREE se trompe-t-il ?
+- Est-ce différent de LINEAR_REG ?
+- Visualiser quelques exemples
