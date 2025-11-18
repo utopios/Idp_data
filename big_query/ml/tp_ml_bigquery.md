@@ -147,3 +147,39 @@ Identifier les transactions qui seront des **"grosses ventes"** (> 500$).
   - Ville
   - Vendor
 - Comparer avec les versions précédentes
+
+## EXERCICE 4 : CLUSTERING - Segmenter les Magasins
+
+### Objectif
+Identifier des **groupes de magasins similaires** pour adapter les stratégies commerciales.
+
+
+**4.1** Agrégation par magasin
+- Créer une table avec 1 ligne par magasin contenant :
+  - Nombre total de transactions
+  - Chiffre d'affaires total
+  - Ventes moyennes par transaction
+  - Nombre de catégories différentes vendues
+  - Villes (pour analyse géographique)
+
+**4.2** Clustering SIMPLE
+- Créer un modèle KMEANS avec K=5
+- Features : CA total, nb transactions, vente moyenne
+- Analyser les centroïdes
+- Profiler chaque cluster
+
+**4.3** Trouver le K optimal
+- Tester K = 3, 5, 7, 10
+- Comparer les scores Davies-Bouldin
+- Utiliser la méthode du coude
+- Choisir le meilleur K
+
+**4.4** Clustering ENRICHI
+- Ajouter des features temporelles :
+  - % de ventes le weekend
+  - % de ventes en décembre (période fêtes)
+  - Évolution des ventes (croissance)
+- Ajouter des features produits :
+  - Catégorie principale vendue
+  - Prix moyen des produits
+  - Diversité du catalogue
