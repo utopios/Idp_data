@@ -116,3 +116,34 @@ Créer un modèle pour **prédire `sale_dollars`** (montant de la vente) en fonc
 - Pourquoi le R² est-il probablement très élevé ?
 - Y a-t-il une multicolinéarité évidente ?
 - Comment améliorer le modèle ?
+
+## EXERCICE 3 : CLASSIFICATION - Prédire les Ventes Importantes (45 min)
+
+Identifier les transactions qui seront des **"grosses ventes"** (> 500$).
+
+### Tâches à réaliser
+
+**3.1** Créer le label
+- Créer une colonne `is_big_sale` :
+  - 1 si `sale_dollars` > 500$
+  - 0 sinon
+- Analyser la distribution (% de grosses ventes)
+- Est-ce déséquilibré ?
+
+**3.2** Modèle LOGISTIC_REG simple
+- Features : `bottles_sold`, `state_bottle_retail`, `volume_sold_liters`
+- Sans équilibrage des classes
+- Évaluer : precision, recall, F1, AUC
+
+**3.3** Modèle LOGISTIC_REG équilibré
+- Même modèle avec `auto_class_weights=TRUE`
+- Comparer les performances
+- Analyser la matrice de confusion
+
+**3.4** Modèle ENRICHI
+- Ajouter :
+  - Mois, jour de la semaine
+  - Catégorie
+  - Ville
+  - Vendor
+- Comparer avec les versions précédentes
