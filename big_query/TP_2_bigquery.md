@@ -197,6 +197,15 @@ SELECT
 
 FROM cleaned_data c
 LEFT JOIN station_stats s ON c.start_station_id = s.start_station_id;
+
+SELECT
+  start_hour,
+  COUNT(*) as count,
+  ROUND(AVG(duration), 2) as avg_duration
+FROM `bike_ml_dataset.bike_features`
+GROUP BY start_hour
+ORDER BY start_hour;
+
 ```
 
 
@@ -205,6 +214,41 @@ LEFT JOIN station_stats s ON c.start_station_id = s.start_station_id;
 ### 2.3 Split train/test
 
 Divisez vos données en ensembles d'entraînement (80%) et de test (20%).
+
+```sql
+CREATE OR REPLACE TABLE `bike_ml_dataset.bike_train` AS
+SELECT
+  duration,
+  start_hour,
+  day_of_week,
+  month,
+  is_weekend,
+  is_morning_rush,
+  is_evening_rush,
+  is_round_trip,
+  start_station_popularity,
+  start_station_avg_duration,
+  start_date
+FROM `bike_ml_dataset.bike_features`
+WHERE random_split < 80;
+
+CREATE OR REPLACE TABLE `bike_ml_dataset.bike_test` AS
+SELECT
+  rental_id,
+  duration,
+  start_hour,
+  day_of_week,
+  month,
+  is_weekend,
+  is_morning_rush,
+  is_evening_rush,
+  is_round_trip,
+  start_station_popularity,
+  start_station_avg_duration,
+  start_date
+FROM `bike_ml_dataset.bike_features`
+WHERE random_split >= 80;
+```
 
 ---
 
