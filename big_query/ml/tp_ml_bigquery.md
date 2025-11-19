@@ -217,3 +217,30 @@ Utiliser un modèle plus performant pour **prédire les ventes** et **les grosse
 - Sur quels cas BOOSTED_TREE se trompe-t-il ?
 - Est-ce différent de LINEAR_REG ?
 - Visualiser quelques exemples
+
+## EXERCICE 6 : DNN
+
+### Objectif
+Expérimenter avec un **réseau de neurones** 
+
+
+**6.1** Créer un modèle DNN_REGRESSOR
+- Architecture : 3 couches [128, 64, 32]
+- Dropout 0.2
+- Learning rate 0.001
+- Prédire `sale_dollars`
+
+**6.2** Créer un modèle DNN_CLASSIFIER
+- Même architecture
+- Prédire `is_big_sale`
+
+**6.3** Comparaison
+- DNN vs BOOSTED_TREE vs LINEAR_REG
+- Temps d'entraînement
+- Performances
+- Quand choisir DNN ?
+
+### Questions d'analyse
+- DNN apporte-t-il une amélioration significative ?
+- Le temps d'entraînement est-il justifié ?
+- Pour quel type de problème DNN serait-il plus adapté ?
