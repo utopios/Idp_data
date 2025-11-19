@@ -121,6 +121,85 @@ Construisez une table d'entraînement avec ces features :
 - Agrégation du nombre de trajets par station
 - Variables météo (si vous joignez avec `bigquery-public-data.noaa_gsod`)
 
+```sql
+
+CREATE SCHEMA bike_ml_dataset
+OPTIONS (
+  location='EU'
+);
+CREATE OR REPLACE TABLE `bike_ml_dataset.bike_features` AS
+WITH cleaned_data AS (
+  SELECT
+    rental_id,
+    duration,
+    bike_id,
+    end_station_id,
+    end_station_name,
+    start_date,
+    start_station_id,
+    start_station_name,
+    end_date
+  FROM `bigquery-public-data.london_bicycles.cycle_hire`
+  WHERE
+    -- Filtrer les données aberrantes
+    duration IS NOT NULL
+    AND duration > 60           
+    AND duration < 7200         
+    AND start_date IS NOT NULL
+    AND end_date IS NOT NULL
+    AND start_station_id IS NOT NULL
+    AND end_station_id IS NOT NULL
+    AND start_date >= '2015-01-01'
+),
+
+station_stats AS (
+  SELECT
+    start_station_id,
+    COUNT(*) as station_trip_count,
+    AVG(duration) as station_avg_duration
+  FROM cleaned_data
+  GROUP BY start_station_id
+)
+
+SELECT
+  -- Identifiant
+  c.rental_id,
+
+  -- Variable cible
+  c.duration,
+
+  -- Features temporelles
+  EXTRACT(HOUR FROM c.start_date) as start_hour,
+  EXTRACT(DAYOFWEEK FROM c.start_date) as day_of_week,
+  EXTRACT(MONTH FROM c.start_date) as month,
+  EXTRACT(YEAR FROM c.start_date) as year,
+  EXTRACT(DAYOFYEAR FROM c.start_date) as day_of_year,
+
+  -- Features booléennes pour segments temporels
+  CASE WHEN EXTRACT(DAYOFWEEK FROM c.start_date) IN (1, 7) THEN 1 ELSE 0 END as is_weekend,
+  CASE WHEN EXTRACT(HOUR FROM c.start_date) BETWEEN 7 AND 9 THEN 1 ELSE 0 END as is_morning_rush,
+  CASE WHEN EXTRACT(HOUR FROM c.start_date) BETWEEN 17 AND 19 THEN 1 ELSE 0 END as is_evening_rush,
+
+  -- Features stations
+  c.start_station_id,
+  c.end_station_id,
+  CASE WHEN c.start_station_id = c.end_station_id THEN 1 ELSE 0 END as is_round_trip,
+
+  -- Features statistiques des stations
+  COALESCE(s.station_trip_count, 0) as start_station_popularity,
+  COALESCE(s.station_avg_duration, 0) as start_station_avg_duration,
+
+  -- Date pour le split
+  c.start_date,
+
+  -- Hash pour split aléatoire reproductible
+  MOD(ABS(FARM_FINGERPRINT(CAST(c.rental_id AS STRING))), 100) as random_split
+
+FROM cleaned_data c
+LEFT JOIN station_stats s ON c.start_station_id = s.start_station_id;
+```
+
+
 **Objectif :** Prédire la durée d'un trajet en fonction des caractéristiques extraites.
 
 ### 2.3 Split train/test
