@@ -49,8 +49,61 @@ LIMIT 20;
 
 Créez des requêtes pour identifier :
 - La distribution des durées de trajet
+
+SELECT
+  CASE
+    WHEN duration < 300 THEN '0-5 min'
+    WHEN duration < 600 THEN '5-10 min'
+    WHEN duration < 900 THEN '10-15 min'
+    WHEN duration < 1200 THEN '15-20 min'
+    WHEN duration < 1800 THEN '20-30 min'
+    WHEN duration < 3600 THEN '30-60 min'
+    ELSE '60+ min'
+  END as duration_bucket,
+  COUNT(*) as trip_count,
+  ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) as percentage
+FROM `bigquery-public-data.london_bicycles.cycle_hire`
+WHERE duration IS NOT NULL
+  AND duration > 0
+  AND duration < 86400  
+GROUP BY duration_bucket
+ORDER BY
+  CASE
+    WHEN duration_bucket = '0-5 min' THEN 1
+    WHEN duration_bucket = '5-10 min' THEN 2
+    WHEN duration_bucket = '10-15 min' THEN 3
+    WHEN duration_bucket = '15-20 min' THEN 4
+    WHEN duration_bucket = '20-30 min' THEN 5
+    WHEN duration_bucket = '30-60 min' THEN 6
+    ELSE 7
+  END;
+
+
 - Les patterns temporels (heure, jour de la semaine)
+
+SELECT
+  EXTRACT(HOUR FROM start_date) as hour,
+  COUNT(*) as trip_count,
+  ROUND(AVG(duration), 2) as avg_duration_seconds
+FROM `bigquery-public-data.london_bicycles.cycle_hire`
+WHERE start_date IS NOT NULL
+GROUP BY hour
+ORDER BY trip_count DESC;
+
 - Les corrélations entre stations de départ et d'arrivée
+
+SELECT
+  start_station_name,
+  end_station_name,
+  COUNT(*) as trip_count,
+  ROUND(AVG(duration), 2) as avg_duration
+FROM `bigquery-public-data.london_bicycles.cycle_hire`
+WHERE start_station_name IS NOT NULL
+  AND end_station_name IS NOT NULL
+  AND start_station_name != end_station_name
+GROUP BY start_station_name, end_station_name
+ORDER BY trip_count DESC
+LIMIT 10;
 
 ---
 
