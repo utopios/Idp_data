@@ -270,6 +270,113 @@ SELECT
   -- vos features
   duration
 FROM `votre_table_features`
+
+
+CREATE OR REPLACE MODEL `bike_ml_dataset.bike_duration_linear_model`
+OPTIONS(
+  model_type='LINEAR_REG',
+  input_label_cols=['duration'],
+  data_split_method='SEQ',
+  data_split_col='start_date',
+  ls_init_learn_rate=0.1,
+  l1_reg=0.0,
+  l2_reg=0.0,
+  max_iterations=50
+) AS
+SELECT
+  duration,
+  start_hour,
+  day_of_week,
+  month,
+  is_weekend,
+  is_morning_rush,
+  is_evening_rush,
+  is_round_trip,
+  start_station_popularity,
+  start_station_avg_duration,
+  start_date
+FROM `bike_ml_dataset.bike_train`;
+
+SELECT
+  *
+FROM ML.EVALUATE(
+  MODEL `bike_ml_dataset.bike_duration_linear_model`,
+  (
+    SELECT
+      duration,
+      start_hour,
+      day_of_week,
+      month,
+      is_weekend,
+      is_morning_rush,
+      is_evening_rush,
+      is_round_trip,
+      start_station_popularity,
+      start_station_avg_duration,
+      start_date
+    FROM `bike_ml_dataset.bike_test`
+  )
+);
+
+SELECT
+  *
+FROM ML.TRAINING_INFO(MODEL `bike_ml_dataset.bike_duration_linear_model`)
+ORDER BY iteration;
+
+SELECT
+  *
+FROM ML.WEIGHTS(MODEL `bike_ml_dataset.bike_duration_linear_model`)
+ORDER BY ABS(weight) DESC;
+
+CREATE OR REPLACE MODEL `bike_ml_dataset.bike_duration_boosted_tree_model`
+OPTIONS(
+  model_type='BOOSTED_TREE_REGRESSOR',
+  input_label_cols=['duration'],
+  data_split_method='SEQ',
+  data_split_col='start_date',
+  max_iterations=50,
+  learn_rate=0.1,
+  min_tree_child_weight=10,
+  subsample=0.8,
+  max_tree_depth=6,
+  early_stop=TRUE,
+  min_rel_progress=0.01
+) AS
+SELECT
+  duration,
+  start_hour,
+  day_of_week,
+  month,
+  is_weekend,
+  is_morning_rush,
+  is_evening_rush,
+  is_round_trip,
+  start_station_popularity,
+  start_station_avg_duration,
+  start_date
+FROM `bike_ml_dataset.bike_train`;
+
+
+SELECT
+  *
+FROM ML.EVALUATE(
+  MODEL `bike_ml_dataset.bike_duration_boosted_tree_model`,
+  (
+    SELECT
+      duration,
+      start_hour,
+      day_of_week,
+      month,
+      is_weekend,
+      is_morning_rush,
+      is_evening_rush,
+      is_round_trip,
+      start_station_popularity,
+      start_station_avg_duration,
+      start_date
+    FROM `bike_ml_dataset.bike_test`
+  )
+);
 ```
 
 ### 3.2 Évaluation du modèle
@@ -284,6 +391,41 @@ Testez également un modèle boosted tree et comparez les performances.
 ### 3.3 Prédictions dans BigQuery
 
 Utilisez `ML.PREDICT` pour générer des prédictions sur votre ensemble de test.
+
+```sql
+
+CREATE OR REPLACE TABLE `bike_ml_dataset.predictions` AS
+SELECT
+  rental_id,
+  duration as actual_duration,
+  predicted_duration,
+  ABS(duration - predicted_duration) as absolute_error,
+  ROUND(ABS(duration - predicted_duration) / duration * 100, 2) as percentage_error
+FROM ML.PREDICT(
+  MODEL `bike_ml_dataset.bike_duration_boosted_tree_model`,
+  (SELECT * FROM `bike_ml_dataset.bike_test`)
+);
+
+SELECT
+  *
+FROM ML.PREDICT(
+  MODEL `bike_ml_dataset.bike_duration_boosted_tree_model`,
+  (
+    SELECT
+      8 as start_hour,
+      2 as day_of_week,
+      6 as month,
+      0 as is_weekend,
+      1 as is_morning_rush,
+      0 as is_evening_rush,
+      0 as is_round_trip,
+      5000 as start_station_popularity,
+      900 as start_station_avg_duration,
+      CURRENT_TIMESTAMP() as start_date
+  )
+);
+
+```
 
 ---
 
