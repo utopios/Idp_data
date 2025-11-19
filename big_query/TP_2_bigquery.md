@@ -20,7 +20,7 @@ Vous allez construire un modèle de prédiction sur des données publiques de v�
 Connectez-vous à votre projet BigQuery et explorez le dataset `bigquery-public-data.london_bicycles.cycle_hire`.
 
 **Questions à résoudre :**
-- Combien de trajets sont enregistrés ?
+- Combien de trajets sont enregistrés ? ()
 - Quelle est la période couverte ?
 - Quelles sont les stations les plus utilisées ?
 
@@ -31,6 +31,19 @@ SELECT
   MAX(end_date) as last_trip
 FROM `bigquery-public-data.london_bicycles.cycle_hire`
 ```
+
+```sql
+SELECT
+  start_station_name,
+  COUNT(*) as trip_count,
+  ROUND(AVG(duration), 2) as avg_duration_seconds
+FROM `bigquery-public-data.london_bicycles.cycle_hire`
+WHERE start_station_name IS NOT NULL
+GROUP BY start_station_name
+ORDER BY trip_count DESC
+LIMIT 20;
+```
+
 
 ### 1.2 Analyse exploratoire
 
