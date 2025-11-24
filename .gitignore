@@ -163,3 +163,4 @@ temp/
 *.tmp
 
 projet/data/*
+cloud_composer/airflow-demo/logs/*
