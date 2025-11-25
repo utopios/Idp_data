@@ -116,5 +116,19 @@ def validation_group():
     return read_file_from_statging
     
 
+@dag(
+    dag_id="sales_data_pipeline",
+    default_args=default_args,
+    schedule=None,
+    catchup=False,
+    tags=["sales", "data_pipeline", "gcp"],
+)
+def sales_data_pipeline():
+    ingest = ingest_group()
+    validate = validation_group()
 
+    ingest >> validate()
+
+sales_dag = sales_data_pipeline()
+    
 
