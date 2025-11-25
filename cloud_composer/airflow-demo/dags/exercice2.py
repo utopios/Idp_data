@@ -71,19 +71,19 @@ def ingest_group():
     check_file_task = GCSObjectExistenceSensor(
         task_id="check_file_existence",
         bucket=SOURCE_BUCKET,
-        object="incoming/sales_{{ ds }}.json",
+        object="incoming/sales_2025-11-25.json",
         timeout = 600,
         poke_interval = 30,
         mode = 'poke',
-        gcp_conn_id=GCP_CONN_ID,
+        google_cloud_conn_id=GCP_CONN_ID,
     )
 
     copy_file = GCSToGCSOperator(
         task_id="copy_file_to_staging",
         source_bucket=SOURCE_BUCKET,
-        source_object="incoming/sales_{{ ds }}.json",
+        source_object="incoming/sales_2025-11-25.json",
         destination_bucket=STAGING_BUCKET,
-        destination_object="incoming/sales_{{ ds }}.json",
+        destination_object="incoming/sales_2025-11-25.json",
         move_object=False,
         gcp_conn_id=GCP_CONN_ID
     )
@@ -99,8 +99,8 @@ def validation_group():
         # Here you could add email notification logic or other alerting mechanisms
 
     @task
-    def read_file_from_statging(execution_date: str):
-        staging_file_ath= f"incoming/sales_{execution_date}.json"
+    def read_file_from_statging():
+        staging_file_ath= f"incoming/sales_2025_11_25.json"
 
         gcs_hook = GCSHook(gcp_conn_id=GCP_CONN_ID)
         file_content = gcs_hook.download(
@@ -122,6 +122,8 @@ def validation_group():
     schedule=None,
     catchup=False,
     tags=["sales", "data_pipeline", "gcp"],
+    start_date=datetime(2025, 1, 1),
+
 )
 def sales_data_pipeline():
     ingest = ingest_group()
