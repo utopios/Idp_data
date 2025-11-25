@@ -1,5 +1,6 @@
 from airflow.decorators import dag, task
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
+from datetime import datetime
 GCP_CONN_ID= "gcp_default"
 
 BUCKET_NAME = "ihab_bucket_utopios"
@@ -21,7 +22,7 @@ def write_to_gcs(**kwargs):
 
 @dag(
     dag_id="dag_avec_gcp",
-    schedule_interval=None,
+    schedule=None,
     start_date=datetime(2023, 1, 1),
     catchup=False,
     tags=["example", "gcp"],
