@@ -1,7 +1,7 @@
 from airflow.decorators import dag, task
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
 from datetime import datetime
-GCP_CONN_ID= "gcp_default"
+GCP_CONN_ID= "google_default"
 
 BUCKET_NAME = "ihab_bucket_utopios"
 
