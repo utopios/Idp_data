@@ -11,6 +11,7 @@ def write_to_gcs(**kwargs):
     
 
     gcs_hook = GCSHook(gcp_conn_id=GCP_CONN_ID)
+    print(f"Uploading file to GCS... {GCP_CONN_ID}")
     data = "Hello, World!"
     gcs_hook.upload(
         bucket_name=BUCKET_NAME,
