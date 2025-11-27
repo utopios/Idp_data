@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture MLOps - Scoring Crédit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 2px solid #e94560;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #e94560;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.2em;
+        }
+
+        .controls {
+            text-align: center;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #e94560, #ff6b6b);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #0f3460, #16213e);
+            color: #e94560;
+            border: 2px solid #e94560;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        .architecture-container {
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .layer {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .layer.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .layer-title {
+            width: 100%;
+            text-align: center;
+            font-size: 1.3em;
+            color: #e94560;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .component {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 2px solid #0f3460;
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 150px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .component:hover {
+            transform: translateY(-5px);
+            border-color: #e94560;
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+        }
+
+        .component.active {
+            border-color: #4ade80;
+            box-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(74, 222, 128, 0.5); }
+            50% { box-shadow: 0 0 50px rgba(74, 222, 128, 0.8); }
+        }
+
+        .component-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .component-name {
+            font-weight: bold;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+
+        .component-tech {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .arrow-container {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .arrow-container.visible {
+            opacity: 1;
+        }
+
+        .arrow {
+            width: 3px;
+            height: 40px;
+            background: linear-gradient(to bottom, #e94560, #4ade80);
+            position: relative;
+            animation: flowDown 1s infinite;
+        }
+
+        @keyframes flowDown {
+            0% { background-position: 0 -40px; }
+            100% { background-position: 0 40px; }
+        }
+
+        .arrow::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: -7px;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid #4ade80;
+        }
+
+        .data-flow {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: flowParticle 2s infinite;
+            box-shadow: 0 0 10px #4ade80;
+        }
+
+        @keyframes flowParticle {
+            0% { opacity: 0; transform: translateY(-20px); }
+            50% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
+        .info-panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: rgba(26, 26, 46, 0.98);
+            border-left: 2px solid #e94560;
+            padding: 30px;
+            transition: right 0.4s ease;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .info-panel.open {
+            right: 0;
+        }
+
+        .info-panel h2 {
+            color: #e94560;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .info-panel .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #e94560;
+        }
+
+        .info-panel ul {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .info-panel li {
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+            color: #ccc;
+        }
+
+        .info-panel li::before {
+            content: '▸ ';
+            color: #4ade80;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #1a1a2e;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #4ade80);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+
+        .step-indicator {
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }
+
+        .color-data { background: #3b82f6; }
+        .color-ml { background: #8b5cf6; }
+        .color-infra { background: #f59e0b; }
+        .color-monitor { background: #10b981; }
+        .color-cicd { background: #ef4444; }
+
+        .metrics-display {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            min-width: 150px;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4ade80;
+        }
+
+        .metric-label {
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+            margin: 30px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e94560;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin: 20px 0;
+            padding: 0 30px;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .timeline-item.visible {
+            opacity: 1;
+        }
+
+        .timeline-item:nth-child(odd) {
+            text-align: right;
+            padding-right: 55%;
+        }
+
+        .timeline-item:nth-child(even) {
+            padding-left: 55%;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: #e94560;
+            border-radius: 50%;
+            border: 3px solid #1a1a2e;
+        }
+
+        @media (max-width: 768px) {
+            .component {
+                min-width: 120px;
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .info-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏦 Architecture MLOps - Scoring Crédit</h1>
+        <p>Plateforme "Prêt à dépenser" - Pipeline ML Industriel</p>
+    </div>
+
+    <div class="controls">
+        <button class="btn btn-primary" onclick="startAnimation()">▶ Démarrer l'animation</button>
+        <button class="btn btn-secondary" onclick="resetAnimation()">↺ Réinitialiser</button>
+        <button class="btn btn-secondary" onclick="showAllLayers()">👁 Voir tout</button>
+        <button class="btn btn-secondary" onclick="toggleAutoPlay()">⏯ Auto-play</button>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+    <div class="step-indicator" id="stepIndicator">Cliquez sur "Démarrer l'animation" pour commencer</div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color color-data"></div> Data Engineering</div>
+        <div class="legend-item"><div class="legend-color color-ml"></div> Machine Learning</div>
+        <div class="legend-item"><div class="legend-color color-infra"></div> Infrastructure</div>
+        <div class="legend-item"><div class="legend-color color-monitor"></div> Monitoring</div>
+        <div class="legend-item"><div class="legend-color color-cicd"></div> CI/CD</div>
+    </div>
+
+    <div class="architecture-container">
+
+        <!-- Layer 1: Data Sources -->
+        <div class="layer" id="layer1">
+            <div class="layer-title">📊 Sources de Données (2.5 GB - 8 fichiers)</div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('application')">
+                <div class="component-icon">📋</div>
+                <div class="component-name">application_train</div>
+                <div class="component-tech">307K lignes • 166 MB</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('bureau')">
+                <div class="component-icon">🏛️</div>
+                <div class="component-name">bureau</div>
+                <div class="component-tech">170 MB</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('previous')">
+                <div class="component-icon">📜</div>
+                <div class="component-name">previous_application</div>
+                <div class="component-tech">405 MB</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('payments')">
+                <div class="component-icon">💳</div>
+                <div class="component-name">installments</div>
+                <div class="component-tech">723 MB</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('cash')">
+                <div class="component-icon">💰</div>
+                <div class="component-name">POS_CASH</div>
+                <div class="component-tech">393 MB</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow1">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 2: ETL Pipeline -->
+        <div class="layer" id="layer2">
+            <div class="layer-title">⚙️ Pipeline ETL & Data Quality</div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('ingestion')">
+                <div class="component-icon">📥</div>
+                <div class="component-name">Ingestion</div>
+                <div class="component-tech">Pandas • NumPy</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('validation')">
+                <div class="component-icon">✅</div>
+                <div class="component-name">Validation</div>
+                <div class="component-tech">Great Expectations</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('transform')">
+                <div class="component-icon">🔄</div>
+                <div class="component-name">Transformation</div>
+                <div class="component-tech">Feature Engineering</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('storage')">
+                <div class="component-icon">💾</div>
+                <div class="component-name">Stockage</div>
+                <div class="component-tech">Parquet • -70%</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow2">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 3: Feature Store -->
+        <div class="layer" id="layer3">
+            <div class="layer-title">🗄️ Feature Store (100+ Features)</div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('features')">
+                <div class="component-icon">📊</div>
+                <div class="component-name">Features Numériques</div>
+                <div class="component-tech">Ratios • Agrégations</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('categorical')">
+                <div class="component-icon">🏷️</div>
+                <div class="component-name">Features Catégorielles</div>
+                <div class="component-tech">Encodage • One-Hot</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('temporal')">
+                <div class="component-icon">⏰</div>
+                <div class="component-name">Features Temporelles</div>
+                <div class="component-tech">Historique • Trends</div>
+            </div>
+            <div class="component" style="border-color: #3b82f6" onclick="showInfo('versioning')">
+                <div class="component-icon">🔢</div>
+                <div class="component-name">Versioning</div>
+                <div class="component-tech">Tags • Metadata</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow3">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 4: ML Training -->
+        <div class="layer" id="layer4">
+            <div class="layer-title">🧠 Entraînement ML (5+ Modèles)</div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('logistic')">
+                <div class="component-icon">📈</div>
+                <div class="component-name">Logistic Regression</div>
+                <div class="component-tech">Baseline</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('rf')">
+                <div class="component-icon">🌲</div>
+                <div class="component-name">Random Forest</div>
+                <div class="component-tech">Ensemble</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('xgb')">
+                <div class="component-icon">🚀</div>
+                <div class="component-name">XGBoost</div>
+                <div class="component-tech">Gradient Boosting</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('lgbm')">
+                <div class="component-icon">⚡</div>
+                <div class="component-name">LightGBM</div>
+                <div class="component-tech">Best Performance</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('mlp')">
+                <div class="component-icon">🔮</div>
+                <div class="component-name">Neural Network</div>
+                <div class="component-tech">MLP</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow4">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 5: MLflow -->
+        <div class="layer" id="layer5">
+            <div class="layer-title">📦 MLflow - Tracking & Registry</div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('tracking')">
+                <div class="component-icon">📝</div>
+                <div class="component-name">Tracking</div>
+                <div class="component-tech">Expériences • Métriques</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('optuna')">
+                <div class="component-icon">🎯</div>
+                <div class="component-name">Optuna</div>
+                <div class="component-tech">Hyperparamètres</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('registry')">
+                <div class="component-icon">📚</div>
+                <div class="component-name">Model Registry</div>
+                <div class="component-tech">Versioning • Staging</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('shap')">
+                <div class="component-icon">🔍</div>
+                <div class="component-name">SHAP</div>
+                <div class="component-tech">Interprétabilité</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow5">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 6: Containerization -->
+        <div class="layer" id="layer6">
+            <div class="layer-title">🐳 Containerisation Docker</div>
+            <div class="component" style="border-color: #f59e0b" onclick="showInfo('docker-etl')">
+                <div class="component-icon">📦</div>
+                <div class="component-name">ETL Container</div>
+                <div class="component-tech">Multi-stage build</div>
+            </div>
+            <div class="component" style="border-color: #f59e0b" onclick="showInfo('docker-train')">
+                <div class="component-icon">📦</div>
+                <div class="component-name">Training Container</div>
+                <div class="component-tech">GPU Support</div>
+            </div>
+            <div class="component" style="border-color: #f59e0b" onclick="showInfo('docker-api')">
+                <div class="component-icon">📦</div>
+                <div class="component-name">API Container</div>
+                <div class="component-tech">FastAPI • Uvicorn</div>
+            </div>
+            <div class="component" style="border-color: #f59e0b" onclick="showInfo('docker-mlflow')">
+                <div class="component-icon">📦</div>
+                <div class="component-name">MLflow Container</div>
+                <div class="component-tech">PostgreSQL</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow6">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 7: Kubernetes -->
+        <div class="layer" id="layer7">
+            <div class="layer-title">☸️ Kubernetes - Orchestration</div>
+            <div class="component" style="border-color: #f59e0b" onclick="showInfo('deployment')">
+                <div class="component-icon">🚀</div>
+                <div class="component-name">Deployments</div>
+                <div class="component-tech">3-10 Replicas</div>
+            </div>
+            <div class="component" style="border-color: #f59e0b" onclick="showInfo('services')">
+                <div class="component-icon">🌐</div>
+                <div class="component-name">Services</div>
+                <div class="component-tech">LoadBalancer</div>
+            </div>
+            <div class="component" style="border-color: #f59e0b" onclick="showInfo('ingress')">
+                <div class="component-icon">🚪</div>
+                <div class="component-name">Ingress</div>
+                <div class="component-tech">Routing</div>
+            </div>
+            <div class="component" style="border-color: #f59e0b" onclick="showInfo('hpa')">
+                <div class="component-icon">📈</div>
+                <div class="component-name">HPA</div>
+                <div class="component-tech">Auto-scaling</div>
+            </div>
+            <div class="component" style="border-color: #f59e0b" onclick="showInfo('helm')">
+                <div class="component-icon">⎈</div>
+                <div class="component-name">Helm Charts</div>
+                <div class="component-tech">Packaging</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow7">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 8: Airflow -->
+        <div class="layer" id="layer8">
+            <div class="layer-title">🌊 Apache Airflow - Orchestration Workflows</div>
+            <div class="component" style="border-color: #10b981" onclick="showInfo('dag-ml')">
+                <div class="component-icon">🔄</div>
+                <div class="component-name">DAG ML Pipeline</div>
+                <div class="component-tech">ETL → Train → Deploy</div>
+            </div>
+            <div class="component" style="border-color: #10b981" onclick="showInfo('dag-drift')">
+                <div class="component-icon">📊</div>
+                <div class="component-name">DAG Drift Detection</div>
+                <div class="component-tech">Quotidien</div>
+            </div>
+            <div class="component" style="border-color: #10b981" onclick="showInfo('scheduler')">
+                <div class="component-icon">⏱️</div>
+                <div class="component-name">Scheduler</div>
+                <div class="component-tech">Cron • Retry</div>
+            </div>
+            <div class="component" style="border-color: #10b981" onclick="showInfo('operators')">
+                <div class="component-icon">🔧</div>
+                <div class="component-name">Custom Operators</div>
+                <div class="component-tech">MLflow • K8s</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow8">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 9: API -->
+        <div class="layer" id="layer9">
+            <div class="layer-title">🔌 API de Prédiction (FastAPI)</div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('predict')">
+                <div class="component-icon">🎯</div>
+                <div class="component-name">POST /predict</div>
+                <div class="component-tech">&lt;200ms p95</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('health')">
+                <div class="component-icon">💚</div>
+                <div class="component-name">GET /health</div>
+                <div class="component-tech">Liveness Probe</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('metrics-api')">
+                <div class="component-icon">📊</div>
+                <div class="component-name">GET /metrics</div>
+                <div class="component-tech">Prometheus</div>
+            </div>
+            <div class="component" style="border-color: #8b5cf6" onclick="showInfo('model-info')">
+                <div class="component-icon">ℹ️</div>
+                <div class="component-name">GET /model-info</div>
+                <div class="component-tech">Version • Date</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow9">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 10: Monitoring -->
+        <div class="layer" id="layer10">
+            <div class="layer-title">📡 Observabilité & Monitoring</div>
+            <div class="component" style="border-color: #10b981" onclick="showInfo('prometheus')">
+                <div class="component-icon">🔥</div>
+                <div class="component-name">Prometheus</div>
+                <div class="component-tech">Métriques</div>
+            </div>
+            <div class="component" style="border-color: #10b981" onclick="showInfo('grafana')">
+                <div class="component-icon">📈</div>
+                <div class="component-name">Grafana</div>
+                <div class="component-tech">Dashboards</div>
+            </div>
+            <div class="component" style="border-color: #10b981" onclick="showInfo('alertmanager')">
+                <div class="component-icon">🚨</div>
+                <div class="component-name">Alertmanager</div>
+                <div class="component-tech">Slack • Email</div>
+            </div>
+            <div class="component" style="border-color: #10b981" onclick="showInfo('evidently')">
+                <div class="component-icon">🔍</div>
+                <div class="component-name">Evidently AI</div>
+                <div class="component-tech">Drift Detection</div>
+            </div>
+        </div>
+
+        <div class="arrow-container" id="arrow10">
+            <div class="arrow"></div>
+        </div>
+
+        <!-- Layer 11: CI/CD -->
+        <div class="layer" id="layer11">
+            <div class="layer-title">🔄 CI/CD Pipeline</div>
+            <div class="component" style="border-color: #ef4444" onclick="showInfo('ci')">
+                <div class="component-icon">🔨</div>
+                <div class="component-name">CI Pipeline</div>
+                <div class="component-tech">Test • Lint • Build</div>
+            </div>
+            <div class="component" style="border-color: #ef4444" onclick="showInfo('cd')">
+                <div class="component-icon">🚀</div>
+                <div class="component-name">CD Pipeline</div>
+                <div class="component-tech">Deploy • Rollback</div>
+            </div>
+            <div class="component" style="border-color: #ef4444" onclick="showInfo('github-actions')">
+                <div class="component-icon">⚙️</div>
+                <div class="component-name">GitHub Actions</div>
+                <div class="component-tech">Workflows</div>
+            </div>
+            <div class="component" style="border-color: #ef4444" onclick="showInfo('environments')">
+                <div class="component-icon">🌍</div>
+                <div class="component-name">Multi-Env</div>
+                <div class="component-tech">Dev → Staging → Prod</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Metrics Display -->
+    <div class="metrics-display" id="metricsDisplay" style="display: none;">
+        <div class="metric">
+            <div class="metric-value" id="metricAuc">0.75+</div>
+            <div class="metric-label">AUC-ROC</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="metricLatency">&lt;200ms</div>
+            <div class="metric-label">Latence p95</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="metricUptime">99%+</div>
+            <div class="metric-label">Uptime SLA</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="metricCoverage">80%+</div>
+            <div class="metric-label">Test Coverage</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value" id="metricFeatures">100+</div>
+            <div class="metric-label">Features</div>
+        </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel" id="infoPanel">
+        <span class="close-btn" onclick="closeInfo()">×</span>
+        <h2 id="infoPanelTitle">Component Info</h2>
+        <div id="infoPanelContent"></div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let autoPlayInterval = null;
+        const totalSteps = 11;
+
+        const componentInfo = {
+            application: {
+                title: '📋 Application Train/Test',
+                content: `
+                    <p>Table principale contenant les demandes de crédit.</p>
+                    <ul>
+                        <li><strong>307,511</strong> lignes d'entraînement</li>
+                        <li><strong>48,744</strong> lignes de test</li>
+                        <li><strong>~8%</strong> de défauts (déséquilibre)</li>
+                        <li>Clé primaire: <code>SK_ID_CURR</code></li>
+                    </ul>
+                    <h3>Variables clés</h3>
+                    <ul>
+                        <li>TARGET: Variable cible (0/1)</li>
+                        <li>AMT_INCOME_TOTAL: Revenu</li>
+                        <li>AMT_CREDIT: Montant crédit</li>
+                        <li>DAYS_EMPLOYED: Ancienneté emploi</li>
+                    </ul>
+                `
+            },
+            bureau: {
+                title: '🏛️ Bureau de Crédit',
+                content: `
+                    <p>Historique des crédits précédents auprès d'autres institutions.</p>
+                    <ul>
+                        <li><strong>170 MB</strong> de données</li>
+                        <li>Jointure via <code>SK_ID_CURR</code></li>
+                        <li>Sous-table: <code>bureau_balance</code></li>
+                    </ul>
+                    <h3>Features à créer</h3>
+                    <ul>
+                        <li>Nombre de crédits bureau</li>
+                        <li>Montant total emprunté</li>
+                        <li>Taux de retard historique</li>
+                    </ul>
+                `
+            },
+            ingestion: {
+                title: '📥 Module d\'Ingestion',
+                content: `
+                    <p>Chargement et validation initiale des données brutes.</p>
+                    <h3>Fonctionnalités</h3>
+                    <ul>
+                        <li>Chargement des 8 fichiers CSV</li>
+                        <li>Validation des schémas</li>
+                        <li>Détection des anomalies</li>
+                        <li>Logs structurés</li>
+                    </ul>
+                    <h3>Technologies</h3>
+                    <ul>
+                        <li>Pandas pour le chargement</li>
+                        <li>Pydantic pour validation</li>
+                        <li>Logging Python</li>
+                    </ul>
+                `
+            },
+            validation: {
+                title: '✅ Data Quality',
+                content: `
+                    <p>Validation automatisée de la qualité des données.</p>
+                    <h3>Checks implémentés</h3>
+                    <ul>
+                        <li>Types de colonnes</li>
+                        <li>Valeurs nulles (&lt;30%)</li>
+                        <li>Doublons</li>
+                        <li>Outliers (IQR)</li>
+                        <li>Intégrité référentielle</li>
+                    </ul>
+                    <h3>Outil</h3>
+                    <ul>
+                        <li>Great Expectations</li>
+                        <li>Rapport HTML automatique</li>
+                    </ul>
+                `
+            },
+            transform: {
+                title: '🔄 Transformation',
+                content: `
+                    <p>Feature Engineering avancé.</p>
+                    <h3>Transformations</h3>
+                    <ul>
+                        <li>Agrégations par client</li>
+                        <li>Ratios financiers</li>
+                        <li>Encodage catégoriel</li>
+                        <li>Features temporelles</li>
+                        <li>Imputation des valeurs manquantes</li>
+                    </ul>
+                    <h3>Objectif</h3>
+                    <ul>
+                        <li>100+ features créées</li>
+                        <li>Documentation complète</li>
+                    </ul>
+                `
+            },
+            storage: {
+                title: '💾 Stockage Optimisé',
+                content: `
+                    <p>Conversion et optimisation du stockage.</p>
+                    <h3>Format</h3>
+                    <ul>
+                        <li>Parquet avec compression Snappy</li>
+                        <li>Réduction -70% vs CSV</li>
+                        <li>Lecture 10x plus rapide</li>
+                    </ul>
+                    <h3>Partitionnement</h3>
+                    <ul>
+                        <li>Par date de traitement</li>
+                        <li>Versioning des datasets</li>
+                    </ul>
+                `
+            },
+            lgbm: {
+                title: '⚡ LightGBM',
+                content: `
+                    <p>Modèle principal - Gradient Boosting optimisé.</p>
+                    <h3>Avantages</h3>
+                    <ul>
+                        <li>Rapide et efficace</li>
+                        <li>Gère bien le déséquilibre</li>
+                        <li>scale_pos_weight supporté</li>
+                    </ul>
+                    <h3>Hyperparamètres clés</h3>
+                    <ul>
+                        <li>num_leaves: 31-255</li>
+                        <li>learning_rate: 0.01-0.3</li>
+                        <li>n_estimators: 100-1000</li>
+                        <li>max_depth: 3-12</li>
+                    </ul>
+                    <h3>Métriques attendues</h3>
+                    <ul>
+                        <li>AUC-ROC: >0.75</li>
+                        <li>Temps train: <5min</li>
+                    </ul>
+                `
+            },
+            tracking: {
+                title: '📝 MLflow Tracking',
+                content: `
+                    <p>Suivi des expérimentations ML.</p>
+                    <h3>Éléments trackés</h3>
+                    <ul>
+                        <li>Paramètres du modèle</li>
+                        <li>Métriques (AUC, F1, coût)</li>
+                        <li>Artefacts (modèle, plots)</li>
+                        <li>Tags et metadata</li>
+                    </ul>
+                    <h3>Backend</h3>
+                    <ul>
+                        <li>PostgreSQL pour metadata</li>
+                        <li>S3/Local pour artefacts</li>
+                    </ul>
+                `
+            },
+            registry: {
+                title: '📚 Model Registry',
+                content: `
+                    <p>Gestion du cycle de vie des modèles.</p>
+                    <h3>Stages</h3>
+                    <ul>
+                        <li><strong>None</strong>: Expérimentation</li>
+                        <li><strong>Staging</strong>: Pré-production</li>
+                        <li><strong>Production</strong>: Déployé</li>
+                        <li><strong>Archived</strong>: Historique</li>
+                    </ul>
+                    <h3>Fonctionnalités</h3>
+                    <ul>
+                        <li>Versioning automatique</li>
+                        <li>Comparaison de versions</li>
+                        <li>Rollback facile</li>
+                    </ul>
+                `
+            },
+            shap: {
+                title: '🔍 SHAP Interprétabilité',
+                content: `
+                    <p>Explications des prédictions du modèle.</p>
+                    <h3>Analyse Globale</h3>
+                    <ul>
+                        <li>Summary plot</li>
+                        <li>Feature importance</li>
+                        <li>Patterns globaux</li>
+                    </ul>
+                    <h3>Analyse Locale</h3>
+                    <ul>
+                        <li>Waterfall plot par client</li>
+                        <li>Force plot</li>
+                        <li>Explication individuelle</li>
+                    </ul>
+                    <h3>Conformité RGPD</h3>
+                    <ul>
+                        <li>Droit à l'explication</li>
+                        <li>Documentation des décisions</li>
+                    </ul>
+                `
+            },
+            'docker-api': {
+                title: '📦 API Container',
+                content: `
+                    <p>Container Docker pour l'API FastAPI.</p>
+                    <h3>Dockerfile</h3>
+                    <pre>
+FROM python:3.10-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+USER nonroot
+CMD ["uvicorn", "main:app"]
+                    </pre>
+                    <h3>Optimisations</h3>
+                    <ul>
+                        <li>Multi-stage build</li>
+                        <li>Image &lt;500MB</li>
+                        <li>Non-root user</li>
+                    </ul>
+                `
+            },
+            deployment: {
+                title: '🚀 K8s Deployments',
+                content: `
+                    <p>Configuration des déploiements Kubernetes.</p>
+                    <h3>Specs</h3>
+                    <ul>
+                        <li>Replicas: 3-10</li>
+                        <li>Strategy: RollingUpdate</li>
+                        <li>Resources limits configurés</li>
+                    </ul>
+                    <h3>Probes</h3>
+                    <ul>
+                        <li>Liveness: /health</li>
+                        <li>Readiness: /health</li>
+                        <li>Startup probe</li>
+                    </ul>
+                `
+            },
+            hpa: {
+                title: '📈 Horizontal Pod Autoscaler',
+                content: `
+                    <p>Auto-scaling basé sur les métriques.</p>
+                    <h3>Configuration</h3>
+                    <ul>
+                        <li>Min replicas: 3</li>
+                        <li>Max replicas: 10</li>
+                        <li>CPU target: 70%</li>
+                    </ul>
+                    <h3>Comportement</h3>
+                    <ul>
+                        <li>Scale up: 15s stabilization</li>
+                        <li>Scale down: 5min stabilization</li>
+                    </ul>
+                `
+            },
+            'dag-ml': {
+                title: '🔄 DAG ML Pipeline',
+                content: `
+                    <p>Workflow complet d'entraînement ML.</p>
+                    <h3>Tâches</h3>
+                    <ol>
+                        <li>Check new data</li>
+                        <li>Ingest data</li>
+                        <li>Validate quality</li>
+                        <li>Feature engineering</li>
+                        <li>Train models</li>
+                        <li>Evaluate & select</li>
+                        <li>Register in MLflow</li>
+                        <li>Deploy to K8s</li>
+                        <li>Smoke tests</li>
+                    </ol>
+                    <h3>Schedule</h3>
+                    <ul>
+                        <li>Hebdomadaire ou sur trigger</li>
+                    </ul>
+                `
+            },
+            predict: {
+                title: '🎯 Endpoint /predict',
+                content: `
+                    <p>Prédiction du risque de défaut.</p>
+                    <h3>Request</h3>
+                    <pre>
+POST /predict
+{
+  "SK_ID_CURR": 123456,
+  "features": {...}
+}
+                    </pre>
+                    <h3>Response</h3>
+                    <pre>
+{
+  "score": 0.23,
+  "decision": "ACCEPTED",
+  "threshold": 0.35,
+  "model_version": "v1.2.0"
+}
+                    </pre>
+                    <h3>SLA</h3>
+                    <ul>
+                        <li>Latence p95: &lt;200ms</li>
+                        <li>Disponibilité: 99%</li>
+                    </ul>
+                `
+            },
+            prometheus: {
+                title: '🔥 Prometheus',
+                content: `
+                    <p>Collecte et stockage des métriques.</p>
+                    <h3>Métriques collectées</h3>
+                    <ul>
+                        <li>HTTP requests (count, latency)</li>
+                        <li>Predictions (score distribution)</li>
+                        <li>Model performance</li>
+                        <li>System resources</li>
+                    </ul>
+                    <h3>Retention</h3>
+                    <ul>
+                        <li>15 jours par défaut</li>
+                        <li>Scrape interval: 15s</li>
+                    </ul>
+                `
+            },
+            grafana: {
+                title: '📈 Grafana Dashboards',
+                content: `
+                    <p>Visualisation des métriques.</p>
+                    <h3>Dashboards</h3>
+                    <ul>
+                        <li><strong>API</strong>: RPS, latence, erreurs</li>
+                        <li><strong>Model</strong>: Prédictions, drift</li>
+                        <li><strong>Infra</strong>: CPU, mémoire, pods</li>
+                    </ul>
+                    <h3>Alertes visuelles</h3>
+                    <ul>
+                        <li>Seuils colorés</li>
+                        <li>Annotations d'événements</li>
+                    </ul>
+                `
+            },
+            evidently: {
+                title: '🔍 Evidently AI',
+                content: `
+                    <p>Détection du drift data/model.</p>
+                    <h3>Types de drift</h3>
+                    <ul>
+                        <li><strong>Data Drift</strong>: Distribution features</li>
+                        <li><strong>Target Drift</strong>: Distribution cible</li>
+                        <li><strong>Model Drift</strong>: Performance</li>
+                    </ul>
+                    <h3>Rapports</h3>
+                    <ul>
+                        <li>HTML interactif</li>
+                        <li>Métriques Prometheus</li>
+                        <li>Alertes automatiques</li>
+                    </ul>
+                `
+            },
+            ci: {
+                title: '🔨 CI Pipeline',
+                content: `
+                    <p>Intégration continue sur chaque commit.</p>
+                    <h3>Étapes</h3>
+                    <ol>
+                        <li>Checkout code</li>
+                        <li>Setup Python</li>
+                        <li>Install dependencies</li>
+                        <li>Lint (Black, Flake8)</li>
+                        <li>Type check (MyPy)</li>
+                        <li>Unit tests (pytest)</li>
+                        <li>Integration tests</li>
+                        <li>Security scan</li>
+                        <li>Build Docker images</li>
+                    </ol>
+                `
+            },
+            cd: {
+                title: '🚀 CD Pipeline',
+                content: `
+                    <p>Déploiement continu automatisé.</p>
+                    <h3>Workflow</h3>
+                    <ol>
+                        <li>Tag de version</li>
+                        <li>Build & push images</li>
+                        <li>Deploy to Staging</li>
+                        <li>Smoke tests</li>
+                        <li>Manual approval</li>
+                        <li>Deploy to Production</li>
+                        <li>Verify deployment</li>
+                    </ol>
+                    <h3>Rollback</h3>
+                    <ul>
+                        <li>Automatique si tests échouent</li>
+                        <li>Manuel via Helm</li>
+                    </ul>
+                `
+            },
+            environments: {
+                title: '🌍 Multi-Environnements',
+                content: `
+                    <p>Configuration par environnement.</p>
+                    <h3>Dev</h3>
+                    <ul>
+                        <li>1 replica</li>
+                        <li>Resources: 256Mi / 0.5 CPU</li>
+                        <li>Debug enabled</li>
+                    </ul>
+                    <h3>Staging</h3>
+                    <ul>
+                        <li>2 replicas</li>
+                        <li>Resources: 512Mi / 1 CPU</li>
+                        <li>Tests automatiques</li>
+                    </ul>
+                    <h3>Production</h3>
+                    <ul>
+                        <li>3-10 replicas (HPA)</li>
+                        <li>Resources: 1Gi / 2 CPU</li>
+                        <li>Monitoring complet</li>
+                    </ul>
+                `
+            }
+        };
+
+        function showInfo(key) {
+            const info = componentInfo[key];
+            if (info) {
+                document.getElementById('infoPanelTitle').innerHTML = info.title;
+                document.getElementById('infoPanelContent').innerHTML = info.content;
+                document.getElementById('infoPanel').classList.add('open');
+            }
+        }
+
+        function closeInfo() {
+            document.getElementById('infoPanel').classList.remove('open');
+        }
+
+        function updateProgress() {
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            const stepNames = [
+                'Prêt à démarrer',
+                'Sources de données (8 CSV, 2.5GB)',
+                'Pipeline ETL & Data Quality',
+                'Feature Store (100+ features)',
+                'Entraînement ML (5+ modèles)',
+                'MLflow Tracking & Registry',
+                'Containerisation Docker',
+                'Kubernetes Orchestration',
+                'Apache Airflow DAGs',
+                'API FastAPI',
+                'Monitoring & Observabilité',
+                'CI/CD Pipeline - Complet!'
+            ];
+
+            document.getElementById('stepIndicator').textContent =
+                `Étape ${currentStep}/${totalSteps}: ${stepNames[currentStep]}`;
+        }
+
+        function showLayer(layerNum) {
+            const layer = document.getElementById('layer' + layerNum);
+            const arrow = document.getElementById('arrow' + (layerNum - 1));
+
+            if (layer) {
+                layer.classList.add('visible');
+                // Animate components
+                const components = layer.querySelectorAll('.component');
+                components.forEach((comp, i) => {
+                    setTimeout(() => {
+                        comp.classList.add('active');
+                        setTimeout(() => comp.classList.remove('active'), 1000);
+                    }, i * 200);
+                });
+            }
+
+            if (arrow) {
+                arrow.classList.add('visible');
+            }
+        }
+
+        function startAnimation() {
+            resetAnimation();
+
+            let step = 1;
+            const interval = setInterval(() => {
+                if (step <= totalSteps) {
+                    currentStep = step;
+                    showLayer(step);
+                    updateProgress();
+                    step++;
+                } else {
+                    clearInterval(interval);
+                    document.getElementById('metricsDisplay').style.display = 'flex';
+                    animateMetrics();
+                }
+            }, 1500);
+        }
+
+        function resetAnimation() {
+            currentStep = 0;
+            updateProgress();
+
+            for (let i = 1; i <= totalSteps; i++) {
+                const layer = document.getElementById('layer' + i);
+                const arrow = document.getElementById('arrow' + i);
+                if (layer) layer.classList.remove('visible');
+                if (arrow) arrow.classList.remove('visible');
+            }
+
+            document.getElementById('metricsDisplay').style.display = 'none';
+
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+            }
+        }
+
+        function showAllLayers() {
+            for (let i = 1; i <= totalSteps; i++) {
+                showLayer(i);
+            }
+            currentStep = totalSteps;
+            updateProgress();
+            document.getElementById('metricsDisplay').style.display = 'flex';
+            animateMetrics();
+        }
+
+        function toggleAutoPlay() {
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+            } else {
+                resetAnimation();
+                let step = 1;
+                autoPlayInterval = setInterval(() => {
+                    if (step <= totalSteps) {
+                        currentStep = step;
+                        showLayer(step);
+                        updateProgress();
+                        step++;
+                    } else {
+                        step = 1;
+                        resetAnimation();
+                        setTimeout(() => {
+                            currentStep = 1;
+                            showLayer(1);
+                            updateProgress();
+                            step = 2;
+                        }, 1000);
+                    }
+                }, 2000);
+            }
+        }
+
+        function animateMetrics() {
+            const metrics = [
+                { id: 'metricAuc', target: '0.75+', start: '0.00' },
+                { id: 'metricLatency', target: '<200ms', start: '0ms' },
+                { id: 'metricUptime', target: '99%+', start: '0%' },
+                { id: 'metricCoverage', target: '80%+', start: '0%' },
+                { id: 'metricFeatures', target: '100+', start: '0' }
+            ];
+
+            metrics.forEach((metric, index) => {
+                setTimeout(() => {
+                    const el = document.getElementById(metric.id);
+                    el.style.transform = 'scale(1.2)';
+                    el.style.color = '#4ade80';
+                    setTimeout(() => {
+                        el.style.transform = 'scale(1)';
+                    }, 300);
+                }, index * 200);
+            });
+        }
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
